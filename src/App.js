@@ -5,174 +5,147 @@ import html2pdf from 'html2pdf.js';
 import './App.css';
 
 function App() {
-  const [markdown, setMarkdown] = useState(`# Markdown Editor Demo
+  const [markdown, setMarkdown] = useState(`# Welcome to Markdown Editor
 
-## Text Formatting
+## Features
 
-This is a paragraph with **bold text**, *italic text*, and ***bold italic text***. You can also use _underscores_ for emphasis.
+- ✨ Real-time preview
+- 📝 Rich text formatting
+- 📄 PDF export
+- 📋 Copy to clipboard
+- 🎨 Beautiful UI
 
-You can ~~strike through~~ text as well.
+## Try it out!
 
-## Links and Images
+Type some **bold** or *italic* text.
 
-[Visit OpenAI](https://www.openai.com)
-
-![Cute Cat](https://placekitten.com/200/200)
-
-## Lists
-
-### Unordered List
-- First item
-- Second item
-  - Nested item 1
-  - Nested item 2
-- Third item
-
-### Ordered List
-1. First step
-2. Second step
-   1. Sub-step A
-   2. Sub-step B
-3. Third step
-
-## Code Examples
-
-Inline code: \`const greeting = "Hello, World!";\`
-
-Code block with syntax highlighting:
 \`\`\`javascript
-function calculateSum(a, b) {
-  return a + b;
+// Code blocks with syntax highlighting
+function hello() {
+  console.log("Hello, World!");
 }
-
-// Example usage
-const result = calculateSum(5, 3);
-console.log(result); // Output: 8
 \`\`\`
 
-## Tables
+> Beautiful blockquotes
 
-| Feature | Description | Support |
-|---------|-------------|---------|
-| Tables | Organized data display | ✅ |
-| Lists | Bullet and numbered lists | ✅ |
-| Code Blocks | Syntax highlighting | ✅ |
-| Math | LaTeX-style equations | ✅ |
+| Tables | Are | Cool |
+|--------|-----|------|
+| col 1  | col 2 | col 3 |
+| row 2  | row 2 | row 2 |
 
-## Blockquotes
-
-> This is a blockquote
-> 
-> It can span multiple lines
->> And can be nested
-
-## Task Lists
-
-- [x] Create markdown editor
-- [x] Add preview pane
-- [x] Implement export feature
-- [x] Add copy feature
-- [ ] Deploy to production
-
-## Mathematical Expressions
-
-When \`a ≠ 0\`, there are two solutions to \`ax² + bx + c = 0\`:
-
-\`\`\`
-x = (-b ± √(b² - 4ac)) / (2a)
-\`\`\`
-
-## Diagrams (ASCII Art)
-
-\`\`\`
-+---------------+
-|   Markdown    |
-|    Editor     |
-+-------+-------+
-        |
-        v
-+---------------+
-|    Preview    |
-|     Pane      |
-+---------------+
-\`\`\`
-
-## Horizontal Rule
-
----
-
-## Footnotes
-
-Here's a sentence with a footnote[^1].
-
-[^1]: This is the footnote content.
-
-## Emoji Support
-
-:smile: :rocket: :books: :computer:
-
-## Definition Lists
-
-Markdown
-: A lightweight markup language for creating formatted text.
-
-Preview
-: A real-time display of the formatted output.
-
-## Custom HTML (if supported)
-
-<details>
-<summary>Click to expand</summary>
-This is hidden content that can be expanded.
-</details>
-
----
-
-*End of demonstration*`);
+[Learn more about Markdown](https://www.markdownguide.org)`);
 
   const handleExport = () => {
+    // Get the first heading or use default name
+    const firstHeading = markdown.match(/^#\s+(.+)$/m)?.[1] || 'document';
+    const filename = `${firstHeading.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+    
     const element = document.getElementById('markdown-preview');
     const opt = {
-      margin: 1,
-      filename: 'markdown-export.pdf',
+      margin: [15, 15],
+      filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        letterRendering: true
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait'
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
-    html2pdf().set(opt).from(element).save();
+
+    // Show loading state
+    const button = document.getElementById('exportButton');
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<span role="img" aria-label="exporting">⏳</span> Exporting...';
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      // Show success state
+      button.innerHTML = '<span role="img" aria-label="success">✓</span> Exported!';
+      setTimeout(() => {
+        button.innerHTML = '<span role="img" aria-label="export">📄</span> Export PDF';
+      }, 2000);
+    }).catch(err => {
+      // Show error state
+      button.innerHTML = '<span role="img" aria-label="error">❌</span> Error';
+      setTimeout(() => {
+        button.innerHTML = '<span role="img" aria-label="export">📄</span> Export PDF';
+      }, 2000);
+      console.error('PDF export failed:', err);
+    });
   };
 
   const handleCopy = () => {
     const element = document.getElementById('markdown-preview');
     const text = element.innerText;
     navigator.clipboard.writeText(text).then(() => {
-      alert('Copied to clipboard!');
+      const button = document.getElementById('copyButton');
+      button.innerHTML = '<span role="img" aria-label="success">✓</span> Copied!';
+      setTimeout(() => {
+        button.innerHTML = '<span role="img" aria-label="copy">📋</span> Copy';
+      }, 2000);
     });
   };
 
   return (
     <div className="App">
+      <header className="app-header">
+        <div className="header-content">
+          <h1>Markdown Editor</h1>
+          <div className="header-actions">
+            <button 
+              className="icon-button" 
+              onClick={handleExport} 
+              id="exportButton"
+              title="Export as PDF (includes filename from first heading)"
+            >
+              <span role="img" aria-label="export">📄</span> Export PDF
+            </button>
+            <button 
+              className="icon-button" 
+              onClick={handleCopy} 
+              id="copyButton" 
+              title="Copy formatted text to clipboard"
+            >
+              <span role="img" aria-label="copy">📋</span> Copy
+            </button>
+          </div>
+        </div>
+      </header>
+      
       <div className="editor-container">
         <div className="editor-pane">
+          <div className="pane-header">
+            <span className="pane-title">Editor</span>
+            <span className="pane-subtitle">Write your markdown here</span>
+          </div>
           <textarea
             value={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
-            placeholder="Type your markdown here..."
+            placeholder="Start typing your markdown..."
           />
         </div>
         <div className="preview-pane">
+          <div className="pane-header">
+            <span className="pane-title">Preview</span>
+            <span className="pane-subtitle">See how it looks</span>
+          </div>
           <div id="markdown-preview">
             <ReactMarkdown 
               children={markdown} 
               remarkPlugins={[remarkGfm]}
             />
           </div>
-          <div className="button-container">
-            <button onClick={handleExport}>Export</button>
-            <button onClick={handleCopy}>Copy</button>
-          </div>
         </div>
       </div>
+
+      <footer className="app-footer">
+        <p>Built with React • Powered by Markdown</p>
+      </footer>
     </div>
   );
 }
