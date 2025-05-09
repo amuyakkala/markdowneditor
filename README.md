@@ -1,3 +1,16 @@
+# Markdown Editor
+
+A modern markdown editor built with React.
+
+## Features
+
+- Real-time preview
+- PDF export
+- Copy to clipboard
+- Beautiful UI
+
+Last updated: 2024-03-21
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
